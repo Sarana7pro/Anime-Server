@@ -65,7 +65,7 @@ Anime-Server 为动漫爱好者提供一个全面、便捷的动漫内容浏览�
 
 项目采用前后端分离架构，后端作为 API 服务提供数据支持，前端通过 HTTP 请求调用接口，展示数据。整体架构设计如下：
 
-- **后端 (anime-api)**  
+- **后端 (anime-server)**  
   提供各类动漫数据查询接口、用户认证、收藏、观看历史接口。使用 CORS 允许来自前端（默认 http://localhost:8080）的请求。
 
 - **前端 (anime-web)**  
@@ -81,7 +81,7 @@ Anime-Server 为动漫爱好者提供一个全面、便捷的动漫内容浏览�
 ```plaintext
 Anime-Server
 │
-├── Anime-Server/                # Node.js 后端
+├── anime-api/                # Node.js 后端
 │   ├── index.js              # 服务器入口
 │   ├── package.json          # 后端依赖及配置
 │   └── ...                   # 其他后端相关文件
