@@ -326,6 +326,56 @@ app.get('/api/hd-anime-movies', countRequest, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/schedule
+ * 功能：获取追番周表数据
+ * 说明：根据管理员预置的关键词，查询每天更新的动漫，并返回对应的数据
+ * 
+ * 参数：无
+ * 返回：
+ * {
+ *   "周一": [ { vod_id, vod_name, vod_pic }, ... ],
+ *   "周二": [ { vod_id, vod_name, vod_pic }, ... ],
+ *   ...
+ * }
+ */
+app.get('/api/schedule', countRequest, async (req, res) => {
+  try {
+    const promisePool = pool.promise();
+    // 管理员预置的配置，多个关键词使用逗号分隔（关键词须正确，否则查询不到）
+    const scheduleConfig = {
+      "周一": "平凡职业造就世界最强第三季,平凡上班族到异世界当上了四天王的故事,我的幸福婚约第二季,魔法使的约定,这公司有我喜欢的人,转生成猫的大叔,稗记舞咏",
+      "周二": "无名记忆第二季,我的可爱对黑岩目高不管用,",
+      "周三": "群花绽放,彷如修罗终有一天会成为最强的炼金术师？,Re：从零开始的异世界生活第三季反击篇,",
+      "周四": "不幸职业【鉴定士】实则最强,BanG Dream! Ave Mujica,石纪元第四季,天久鹰央的推理病历表,蜂蜜柠檬苏打动画版,",
+      "周五": "欢迎来到日本，精灵小姐。,魔农传记,黄昏旅店,MOMENTARY LILY 刹那之花,终究、与你相恋。,中年大叔转生反派千金,",
+      "周六": "坂本日常,我和班上最讨厌的女生结婚了。,S级怪兽《贝希摩斯》被误认成小猫，成为精灵女孩的骑士(宠物)一起生活,一杆青空2025,虽然是公会的前台小姐，因为讨厌加班，所以打算自己讨伐boss,药屋少女的呢喃第二季",
+      "周日": "想摆脱公主教育的我,在冲绳喜欢上的女孩子方言讲太多太棘手了,超超超超超喜欢你的100个女朋友第二季,离开A级队伍的我，和从前的弟子往迷宫深处迈进,金牌得主,香格里拉·开拓异境～粪作猎手挑战神作～第二季"
+    };
+
+    const scheduleResult = {};
+    for (const day in scheduleConfig) {
+      const keywordsStr = scheduleConfig[day];
+      if (!keywordsStr) {
+        scheduleResult[day] = [];
+        continue;
+      }
+      const keywords = keywordsStr.split(',').map(k => k.trim()).filter(Boolean);
+      let query = 'SELECT vod_id, vod_name, vod_pic FROM mac_vod WHERE ';
+      query += keywords.map(() => "vod_name LIKE ?").join(' OR ');
+      query += " LIMIT 5";
+      const params = keywords.map(keyword => `%${keyword}%`);
+      const [rows] = await promisePool.query(query, params);
+      scheduleResult[day] = rows;
+    }
+    res.json(scheduleResult);
+  } catch (error) {
+    console.error("Schedule query error:", error);
+    res.status(500).json({ error: "数据库查询失败" });
+  }
+});
+
+
 // =========================
 // 用户认证接口（登录/注册）
 // =========================
